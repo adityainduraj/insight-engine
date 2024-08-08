@@ -1,5 +1,5 @@
 #!/bin/sh
-'''exec' "/home/adityainduraj/Documents/projects/Insight Engine/venv/bin/python" "$0" "$@"
+'''exec' "/home/adityainduraj/Documents/projects/insight engine/venv/bin/python" "$0" "$@"
 ' '''
 # -*- coding: utf-8 -*-
 import re
