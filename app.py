@@ -4,8 +4,8 @@ from data_processor import preprocess_data
 from visualizer import visualize_data
 
 def main():
-    st.title("Data Analysis Tool")
-
+    st.title("Project Insight")
+    
     # File uploader
     uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
 

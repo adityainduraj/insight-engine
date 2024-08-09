@@ -4,15 +4,24 @@ from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import StandardScaler
 
 def preprocess_data(df):
-    # Handle missing values
-    imputer = SimpleImputer(strategy='mean')
-    df_imputed = pd.DataFrame(imputer.fit_transform(df), columns=df.columns)
+    # Separate numeric and non-numeric columns
+    numeric_columns = df.select_dtypes(include=[np.number]).columns
+    non_numeric_columns = df.select_dtypes(exclude=[np.number]).columns
 
-    # Identify numeric columns
-    numeric_columns = df_imputed.select_dtypes(include=[np.number]).columns
+    # Convert non-numeric data in numeric columns to NaN
+    for col in numeric_columns:
+        df[col] = pd.to_numeric(df[col], errors='coerce')
+
+    # Handle missing values for numeric columns
+    numeric_imputer = SimpleImputer(strategy='mean')
+    df[numeric_columns] = numeric_imputer.fit_transform(df[numeric_columns])
+
+    # Handle missing values for non-numeric columns
+    non_numeric_imputer = SimpleImputer(strategy='most_frequent')
+    df[non_numeric_columns] = non_numeric_imputer.fit_transform(df[non_numeric_columns])
 
     # Standardize numeric features
     scaler = StandardScaler()
-    df_imputed[numeric_columns] = scaler.fit_transform(df_imputed[numeric_columns])
+    df[numeric_columns] = scaler.fit_transform(df[numeric_columns])
 
-    return df_imputed
+    return df
