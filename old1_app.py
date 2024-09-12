@@ -1,9 +1,10 @@
+
 import streamlit as st
 import pandas as pd
 from data_analysis import get_summary_statistics
 from visualizations import create_visualization
 
-def add_date_features(df):
+def add_month_year_columns(df):
     # Find columns with datetime types or that can be converted to datetime
     date_columns = df.select_dtypes(include=['datetime64', 'object']).columns
     for column in date_columns:
@@ -11,9 +12,7 @@ def add_date_features(df):
             # Try to parse date columns
             df[column] = pd.to_datetime(df[column])
             # Create Month-Year column
-            df[column + '_Month_Year'] = df[column].dt.to_period('M').dt.strftime('%B-%Y')
-            # Create Year column
-            df[column + '_Year'] = df[column].dt.year
+            df[column + '_Month_Year'] = df[column].dt.strftime('%B-%Y')
         except Exception:
             # If parsing fails, skip that column
             pass
@@ -27,14 +26,8 @@ def main():
     if uploaded_file is not None:
         df = pd.read_csv(uploaded_file)
 
-        # Add Month-Year and Year columns for date features
-        df = add_date_features(df)
-
-        # Ensure Month-Year sorting
-        month_year_columns = [col for col in df.columns if 'Month_Year' in col]
-        for col in month_year_columns:
-            # Extract year and month from the Month-Year column for proper sorting
-            df[col + '_sorted'] = pd.to_datetime(df[col], format='%B-%Y', errors='coerce').dt.to_period('M').dt.to_timestamp()
+        # Add Month-Year columns for date features
+        df = add_month_year_columns(df)
 
         st.subheader("First 5 rows of the dataset")
         st.write(df.head())

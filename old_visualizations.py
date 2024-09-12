@@ -1,13 +1,32 @@
+# import plotly.express as px
+# import plotly.graph_objects as go
+
+# def create_visualization(df, viz_type, x=None, y=None, color=None):
+#     if viz_type == "Scatter Plot":
+#         return px.scatter(df, x=x, y=y, color=color, title=f"Scatter Plot: {y} vs {x}")
+#     elif viz_type == "Bar Chart":
+#         return px.bar(df, x=x, y=df[x].value_counts(), title=f"Bar Chart of {x}")
+#     elif viz_type == "Line Chart":
+#         return px.line(df, x=x, y=y, color=color, title=f"Line Chart: {y} vs {x}")
+#     elif viz_type == "Box Plot":
+#         return px.box(df, y=x, title=f"Box Plot of {x}")
+#     elif viz_type == "Histogram":
+#         return px.histogram(df, x=x, title=f"Histogram of {x}")
+#     elif viz_type == "Heatmap":
+#         corr_matrix = df.corr()
+#         return go.Figure(data=go.Heatmap(
+#             z=corr_matrix.values,
+#             x=corr_matrix.columns,
+#             y=corr_matrix.index,
+#             colorscale='RdBu_r',
+#             zmin=-1, zmax=1
+#         ))
 
 import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
 
 def create_visualization(df, viz_type, x=None, y=None, color=None):
-    # Sort the dataframe by the x column if it's a datetime column
-    if pd.api.types.is_datetime64_any_dtype(df[x]):
-        df = df.sort_values(by=x)
-
     if viz_type == "Scatter Plot":
         return px.scatter(df, x=x, y=y, color=color, title=f"Scatter Plot: {y} vs {x}")
     elif viz_type == "Bar Chart":
