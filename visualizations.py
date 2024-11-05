@@ -1,24 +1,21 @@
-
+# visualizations.py
 import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
 
 def create_visualization(df, viz_type, x=None, y=None, color=None):
-    # Sort the dataframe by the x column if it's a datetime column
-    if pd.api.types.is_datetime64_any_dtype(df[x]):
+    if x is not None and pd.api.types.is_datetime64_any_dtype(df[x]):
         df = df.sort_values(by=x)
 
     if viz_type == "Scatter Plot":
         return px.scatter(df, x=x, y=y, color=color, title=f"Scatter Plot: {y} vs {x}")
     elif viz_type == "Bar Chart":
-        # Aggregate data if necessary
         if df[x].nunique() < len(df):
             agg_df = df.groupby(x)[y].mean().reset_index()
             return px.bar(agg_df, x=x, y=y, title=f"Bar Chart: Average {y} by {x}")
         else:
             return px.bar(df, x=x, y=y, title=f"Bar Chart: {y} by {x}")
     elif viz_type == "Line Chart":
-        # Aggregate data if necessary
         if df[x].nunique() < len(df):
             agg_df = df.groupby(x)[y].mean().reset_index()
             return px.line(agg_df, x=x, y=y, title=f"Line Chart: Average {y} vs {x}")
@@ -37,3 +34,44 @@ def create_visualization(df, viz_type, x=None, y=None, color=None):
             colorscale='RdBu_r',
             zmin=-1, zmax=1
         ))
+
+def create_prediction_visualization(prediction_df, viz_option):
+    if viz_option == "Actual vs Predicted":
+        fig = px.scatter(
+            prediction_df,
+            x='Actual',
+            y='Predicted',
+            title="Actual vs Predicted Values"
+        )
+        fig.add_trace(
+            go.Scatter(
+                x=[prediction_df['Actual'].min(), prediction_df['Actual'].max()],
+                y=[prediction_df['Actual'].min(), prediction_df['Actual'].max()],
+                mode='lines',
+                name='Perfect Prediction',
+                line=dict(dash='dash')
+            )
+        )
+        return fig
+
+    elif viz_option == "Prediction Distribution":
+        fig = go.Figure()
+        fig.add_trace(go.Histogram(x=prediction_df['Actual'],
+                                 name='Actual',
+                                 opacity=0.7))
+        fig.add_trace(go.Histogram(x=prediction_df['Predicted'],
+                                 name='Predicted',
+                                 opacity=0.7))
+        fig.update_layout(
+            title="Distribution of Actual vs Predicted Values",
+            barmode='overlay'
+        )
+        return fig
+
+    elif viz_option == "Prediction Error Analysis":
+        prediction_df['Error'] = prediction_df['Actual'] - prediction_df['Predicted']
+        return px.histogram(
+            prediction_df,
+            x='Error',
+            title="Distribution of Prediction Errors"
+        )
