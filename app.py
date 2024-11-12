@@ -8,6 +8,21 @@ from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from data_analysis import get_summary_statistics
 from visualizations import create_visualization, create_prediction_visualization
 
+def recommend_problem_type(df, target_column):
+    unique_values = df[target_column].nunique()
+    value_counts = df[target_column].value_counts()
+
+    # Check if target is categorical or numerical
+    is_numeric = pd.api.types.is_numeric_dtype(df[target_column])
+
+    if not is_numeric:
+        return "Classification", "The target variable is non-numeric, suggesting a classification problem."
+
+    if unique_values <= 10 and max(value_counts)/len(df) > 0.01:
+        return "Classification", "The target variable has few unique values, suggesting a classification problem."
+    else:
+        return "Regression", "The target variable appears to be continuous, suggesting a regression problem."
+
 def add_date_features(df):
     date_columns = df.select_dtypes(include=['datetime64', 'object']).columns
     for column in date_columns:
@@ -129,11 +144,20 @@ def main():
 
         st.subheader("AutoML Model Training")
         target = st.selectbox("Select target variable", df.columns)
+
+        # Add problem type recommendation
+        recommended_type, reason = recommend_problem_type(df, target)
+        st.info(f"💡 Recommended problem type: **{recommended_type}**\n\n{reason}")
+
         numeric_features = df.select_dtypes(include=['int64', 'float64']).columns
         selected_features = st.multiselect("Select features for the model",
                                          numeric_features,
                                          default=list(numeric_features))
         features = df[selected_features]
+
+        problem_type = st.radio("Select problem type",
+                              ["Classification", "Regression"],
+                              index=0 if recommended_type == "Classification" else 1)
 
         # Feature scaling
         from sklearn.preprocessing import StandardScaler
@@ -142,8 +166,6 @@ def main():
             scaler.fit_transform(features),
             columns=features.columns
         )
-
-        problem_type = st.radio("Select problem type", ["Classification", "Regression"])
 
         if st.button("Run AutoML"):
             X_train, X_test, y_train, y_test = train_test_split(

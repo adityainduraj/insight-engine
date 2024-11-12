@@ -1,4 +1,3 @@
-# visualizations.py
 import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
@@ -37,41 +36,69 @@ def create_visualization(df, viz_type, x=None, y=None, color=None):
 
 def create_prediction_visualization(prediction_df, viz_option):
     if viz_option == "Actual vs Predicted":
-        fig = px.scatter(
-            prediction_df,
-            x='Actual',
-            y='Predicted',
-            title="Actual vs Predicted Values"
-        )
-        fig.add_trace(
-            go.Scatter(
-                x=[prediction_df['Actual'].min(), prediction_df['Actual'].max()],
-                y=[prediction_df['Actual'].min(), prediction_df['Actual'].max()],
-                mode='lines',
-                name='Perfect Prediction',
-                line=dict(dash='dash')
-            )
+        # Create a sorted index
+        prediction_df = prediction_df.reset_index(drop=True)
+
+        fig = go.Figure()
+
+        # Add actual values line
+        fig.add_trace(go.Scatter(
+            x=prediction_df.index,
+            y=prediction_df['Actual'],
+            mode='lines',
+            name='Actual',
+            line=dict(color='blue')
+        ))
+
+        # Add predicted values line
+        fig.add_trace(go.Scatter(
+            x=prediction_df.index,
+            y=prediction_df['Predicted'],
+            mode='lines',
+            name='Predicted',
+            line=dict(color='red')
+        ))
+
+        fig.update_layout(
+            title="Actual vs Predicted Values Over Samples",
+            xaxis_title="Sample Index",
+            yaxis_title="Values",
+            showlegend=True
         )
         return fig
 
     elif viz_option == "Prediction Distribution":
         fig = go.Figure()
-        fig.add_trace(go.Histogram(x=prediction_df['Actual'],
-                                 name='Actual',
-                                 opacity=0.7))
-        fig.add_trace(go.Histogram(x=prediction_df['Predicted'],
-                                 name='Predicted',
-                                 opacity=0.7))
+        fig.add_trace(go.Histogram(
+            x=prediction_df['Actual'],
+            name='Actual',
+            opacity=0.7,
+            nbinsx=30
+        ))
+        fig.add_trace(go.Histogram(
+            x=prediction_df['Predicted'],
+            name='Predicted',
+            opacity=0.7,
+            nbinsx=30
+        ))
         fig.update_layout(
             title="Distribution of Actual vs Predicted Values",
-            barmode='overlay'
+            barmode='overlay',
+            xaxis_title="Values",
+            yaxis_title="Count"
         )
         return fig
 
     elif viz_option == "Prediction Error Analysis":
         prediction_df['Error'] = prediction_df['Actual'] - prediction_df['Predicted']
-        return px.histogram(
+        fig = px.histogram(
             prediction_df,
             x='Error',
+            nbins=30,
             title="Distribution of Prediction Errors"
         )
+        fig.update_layout(
+            xaxis_title="Prediction Error",
+            yaxis_title="Count"
+        )
+        return fig
