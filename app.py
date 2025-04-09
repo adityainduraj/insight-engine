@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-from lazypredict.Supervised import LazyClassifier, LazyRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from data_analysis import get_summary_statistics
@@ -173,22 +172,66 @@ def main():
             )
 
             if problem_type == "Classification":
-                clf = LazyClassifier(verbose=0, ignore_warnings=True, custom_metric=None)
-                models, predictions = clf.fit(X_train, X_test, y_train, y_test)
+                from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+                from sklearn.linear_model import LogisticRegression
+                from sklearn.svm import SVC
+                from sklearn.neighbors import KNeighborsClassifier
+                from sklearn.metrics import accuracy_score
+
+                models = {
+                    "RandomForest": RandomForestClassifier(random_state=42),
+                    "GradientBoosting": GradientBoostingClassifier(random_state=42),
+                    "LogisticRegression": LogisticRegression(random_state=42, max_iter=1000),
+                    "SVC": SVC(random_state=42),
+                    "KNeighbors": KNeighborsClassifier()
+                }
+
+                results = {}
+                for name, model in models.items():
+                    model.fit(X_train, y_train)
+                    predictions = model.predict(X_test)
+                    accuracy = accuracy_score(y_test, predictions)
+                    results[name] = accuracy
+
+                # Convert to DataFrame for display
+                models_df = pd.DataFrame({"Accuracy": results}).sort_values("Accuracy", ascending=False)
             else:
-                reg = LazyRegressor(verbose=0, ignore_warnings=True, custom_metric=None)
-                models, predictions = reg.fit(X_train, X_test, y_train, y_test)
+                from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
+                from sklearn.linear_model import LinearRegression
+                from sklearn.tree import DecisionTreeRegressor
+                from sklearn.neighbors import KNeighborsRegressor
+                from sklearn.metrics import r2_score
+
+                models = {
+                    "RandomForest": RandomForestRegressor(random_state=42),
+                    "GradientBoosting": GradientBoostingRegressor(random_state=42),
+                    "LinearRegression": LinearRegression(),
+                    "DecisionTree": DecisionTreeRegressor(random_state=42),
+                    "KNeighbors": KNeighborsRegressor()
+                }
+
+                results = {}
+                for name, model in models.items():
+                    model.fit(X_train, y_train)
+                    predictions = model.predict(X_test)
+                    r2 = r2_score(y_test, predictions)
+                    results[name] = r2
+
+                # Convert to DataFrame for display
+                models_df = pd.DataFrame({"R-Squared": results}).sort_values("R-Squared", ascending=False)
 
             st.write("Model Performance:")
-            st.write(models)
+            st.write(models_df)
 
             # Visualize model performance
+            performance_metric = 'Accuracy' if problem_type == "Classification" else 'R-Squared'
             fig = px.bar(
-                models,
-                x=models.index,
-                y='Accuracy' if problem_type == "Classification" else 'R-Squared',
-                title=f"Model Performance ({'Accuracy' if problem_type == 'Classification' else 'R-Squared'})"
+                models_df.reset_index(),
+                x='index',
+                y=performance_metric,
+                title=f"Model Performance ({performance_metric})"
             )
+            fig.update_layout(xaxis_title="Model", yaxis_title=performance_metric)
             st.plotly_chart(fig)
 
             # Add the prediction section

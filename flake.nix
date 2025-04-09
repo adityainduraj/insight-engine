@@ -20,9 +20,9 @@
             python310
             python310Packages.pip
             python310Packages.virtualenv
-            # Add these system dependencies
+            # System dependencies
             stdenv.cc.cc.lib  # This provides libstdc++
-            zlib
+            zlib  # Add zlib explicitly
             gcc
           ];
 
@@ -39,7 +39,7 @@
             pip install -r requirements.txt
 
             # Set LD_LIBRARY_PATH to find the required libraries
-            export LD_LIBRARY_PATH=${pkgs.stdenv.cc.cc.lib}/lib:$LD_LIBRARY_PATH
+            export LD_LIBRARY_PATH=${pkgs.stdenv.cc.cc.lib}/lib:${pkgs.zlib}/lib:$LD_LIBRARY_PATH
 
             echo "Python development environment activated!"
           '';
